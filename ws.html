@@ -1,18 +1,60 @@
-<h1>
-    Web Socket Example
-</h1>
-<p>
-    open console to see connection.
-</p>
-<script>
-    var ws = new WebSocket('ws://localhost:40510');
+<html>
+    <head>
+        <style>
+.hidden {
+    display: none;
+}
 
-    ws.onopen = function () {
-        console.log('websocket is connected ...')
-        ws.send('connected')
+        </style>
+    </head>
+    <body>
+        <h1>
+            Web Socket Example
+        </h1>
+        <h1 id="loader" class="">Loading...</h1>
+        <div id="app" onclick="send()">
+        </div>
+    </body>
+    <script>
+    var ws
+    function send() {
+        console.log("asdf")
+        ws && ws.send('click')
     }
+    function connect_ws() {
+        ws = new WebSocket('ws://localhost:40510'); 
+        ws.onopen = function () {
+            console.log('websocket is connected ...')
+            ws.send('connected')
+            document.getElementById("loader").classList.add("hidden")
+        }
+        ws.onerror = function (e) {
+            console.log('error', e)
+        }
 
-    ws.onmessage = function (ev) {
-        console.log(ev);
+        ws.onmessage = function (ev) {
+            //console.log(ev.data);
+            var msg = JSON.parse(ev.data)
+            if (msg.content) {
+                document.getElementById("app").innerHTML = msg.content;
+            } else if (msg.style) {
+                var prev = document.getElementById("style1")
+                prev && prev.remove()
+                var css = document.createElement("style")
+                css.id = "style1"
+                css.type = "text/css"
+                css.innerHTML = msg.style
+                document.body.appendChild(css)
+            }
+        }
+        ws.onclose = function (ev) {
+            ws = null
+            document.getElementById("loader").classList.remove("hidden")
+            setTimeout(connect_ws, 1000)
+        }
     }
-</script>
+    connect_ws()
+
+    
+    </script>
+</html>
